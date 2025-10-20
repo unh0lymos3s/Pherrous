@@ -1,5 +1,6 @@
+
 use std::net::{SocketAddr, TcpStream, TcpListener};
-use std::io::{BufReader, Write};
+use std::io::{BufReader, Write, Read};
 use std::thread;
 use std::time::Duration;
 fn tcp_server(){
@@ -17,9 +18,15 @@ fn tcp_server(){
         for stream in listener.incoming(){
             count +=1;            
             thread::spawn(||{
-            let stream = stream.unwrap();
-            handle_connection(stream);
+            match stream{
+                Ok(stream) => {
+                    handle_connection(stream);
+                },
+                Err(e) => { println!("Failed to read");}
+            }
             });
+
+            
             println!("Thread {}", count);
         }
     }
@@ -30,10 +37,21 @@ fn tcp_server(){
 }
 
 fn handle_connection(mut stream: TcpStream){
-    let buffer = BufReader::new(&stream);
+    let mut reader = BufReader::new(&stream);
+    let mut buffer = [0; 1024];
+    loop{
+        match reader.read(&mut buffer){
+            Ok(0)=> {println!("Reached End of stream"); break;},
+            Ok(n) => {println!("Reached End of stream");
+                let data = &buffer[..n]; 
+                println!("Receieved Data \n {:?}", data);},
+            Err(e) => {println!("failed to read");}
+        }
+        
+    }
     println!("request successful!!!!!!! 200");
     let response = "Hello from server!".as_bytes();    
-    stream.write(response).expect("Failed to respond!");
+    &mut stream.write_all(response).expect("Failed to respond!");
 
 }
 fn main() 
