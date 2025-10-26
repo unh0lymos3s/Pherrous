@@ -1,8 +1,9 @@
-
 use std::net::{SocketAddr, TcpStream, TcpListener};
-use std::io::{BufReader, Write, Read};
+use std::io::{BufReader, Write};
 use std::thread;
 use std::time::Duration;
+use std::fs::{File, read};
+
 fn tcp_server(){
     let mut count:i32=0;
     let addrs =[
@@ -18,15 +19,9 @@ fn tcp_server(){
         for stream in listener.incoming(){
             count +=1;            
             thread::spawn(||{
-            match stream{
-                Ok(stream) => {
-                    handle_connection(stream);
-                },
-                Err(e) => { println!("Failed to read");}
-            }
+            let stream = stream.unwrap();
+            handle_connection(stream);
             });
-
-            
             println!("Thread {}", count);
         }
     }
@@ -37,35 +32,31 @@ fn tcp_server(){
 }
 
 fn handle_connection(mut stream: TcpStream){
-    let mut reader = BufReader::new(&stream);
-    let mut buffer = [0; 1024];
-    loop{
-        match reader.read(&mut buffer){
-            Ok(0)=> {println!("Reached End of stream"); break;},
-            Ok(n) => {println!("Reached End of stream");
-                let data = &buffer[..n]; 
-                println!("Receieved Data \n {:?}", data);},
-            Err(e) => {println!("failed to read");}
-        }
-        
-    }
+    let buffer = BufReader::new(&stream);
     println!("request successful!!!!!!! 200");
-    let response = "Hello from server!".as_bytes();    
-    &mut stream.write_all(response).expect("Failed to respond!");
+    let filedata =  openFileAsByte().expect("Couldn't read file");
+    let ReadData:&[u8] = &filedata.as_slice(); 
+    stream.write(ReadData).expect("Failed to respond!");}
 
+
+fn openFileAsByte()->Result<Vec<u8>, Box<dyn std::error::Error>>{
+
+    let mut fileData = read("pp.JPG").expect("Couldnt read file");
+    println!("Read Data {:?}", &fileData);
+    Ok(fileData)
 }
-fn main() 
 
-    {
+
+
+
+
+fn main() {
+
+    println!("Opening file cpp");
     let listen = thread::spawn(|| {
         tcp_server();
     });
-/*    let streamer = thread::spawn(|| {
-        tcp_client();
-        //
-        //
-    });*/
-//    streamer.join().unwrap();
+
     listen.join().unwrap();
     
     
