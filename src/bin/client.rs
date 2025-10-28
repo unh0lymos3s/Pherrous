@@ -1,16 +1,32 @@
-use std::net::TcpStream;
+use std::net::{TcpStream, TcpListener};
 use std::io::{Read, Write};
 use std::time::Duration;
 use std::thread;
+use std::fs::File;
 fn tcp_client(){
-        let mut client = match TcpStream::connect("127.0.0.1:8080") {
+        let mut getStream = match TcpStream::connect("127.0.0.1:8080") {
 
-            Ok(client) => {println!("Connected to Server from a seperate thread!!!");
-                let message = "Hello!".as_bytes();
-                client.write(&message);}
-            Err(e)=> {
-                println!("Connection Failed :[");}};
-        thread::sleep(Duration::from_secs(3));
+            Ok(getStream) => {
+                println!("Recieving file..........");    
+                acceptData(getStream);
+            },
+                
+        
+            Err(e) => {
+                println!("Connection Failed :[");
+            }
+        };  
+}
+
+fn acceptData(mut stream: TcpStream)->Result<(), Box<dyn std::error::Error>>{
+    let mut recievedFile = File::create("cpp.cpp")?;
+    let mut buffer = Vec::new();
+    stream.read_to_end(&mut buffer)?;
+    recievedFile.write_all(&mut buffer);
+
+    Ok(())
+    
+    
 }
 
 fn main(){

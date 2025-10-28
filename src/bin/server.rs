@@ -35,19 +35,30 @@ fn handle_connection(mut stream: TcpStream){
     let buffer = BufReader::new(&stream);
     println!("request successful!!!!!!! 200");
     let filedata =  openFileAsByte().expect("Couldn't read file");
-    let ReadData:&[u8] = &filedata.as_slice(); 
+    let ReadData:&[u8] = &filedata.as_slice();
+    let sizeOfFile = getMetaData(ReadData);
+
+    stream.write(b"Transmitting Filesize\n");
+    let mut sizeArr = [0;1];
+    sizeArr = [sizeOfFile];
+    stream.write(&sizeArr);
+    stream.write(b"Streaming whole file");
     stream.write(ReadData).expect("Failed to respond!");}
 
 
 fn openFileAsByte()->Result<Vec<u8>, Box<dyn std::error::Error>>{
 
-    let mut fileData = read("pp.JPG").expect("Couldnt read file");
+    let mut fileData = read("src/bin/cpp.cpp").expect("Couldnt read file");
     println!("Read Data {:?}", &fileData);
+    println!("Size of file: {}", fileData.len());
     Ok(fileData)
 }
 
-
-
+fn getMetaData(ReadData: &[u8])->u8{
+    let dataLength = ReadData.len();
+    let size = dataLength as u8;
+    return size
+}
 
 
 fn main() {
