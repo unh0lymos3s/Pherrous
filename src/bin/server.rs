@@ -30,15 +30,15 @@ fn handle_connection(mut stream: TcpStream, filePath: String){
     println!("request successful!!!!!!! 200");
     let filedata =  openFileAsByte(filePath).expect("Couldn't read file");
     let ReadData:&[u8] = &filedata.as_slice();
-    let sizeOfFile = getMetaData(ReadData);
+    let sizeOfFile = filedata.len();
 
     stream.write(b"Transmitting Filesize\n");
-    let mut sizeArr = [0;1];
-    sizeArr = [sizeOfFile];    
     stream.write(b"File Size = ");
-    stream.write(&sizeArr[0].to_le_bytes());
+    stream.write(&sizeOfFile.to_le_bytes());
     stream.write(b"Streaming whole file");
-    stream.write(ReadData).expect("Failed to respond!");}
+    let bytesWritten = stream.write(ReadData).expect("Failed to respond!");
+    println!("Written bytes {:?}", bytesWritten);
+}
 
 
 fn openFileAsByte(fileName: String)->Result<Vec<u8>, Box<dyn std::error::Error>>{
@@ -46,7 +46,7 @@ fn openFileAsByte(fileName: String)->Result<Vec<u8>, Box<dyn std::error::Error>>
     let mut fileData = read(fileName).expect("Couldnt read file"); //filename is essentially
                                                                    //file path
     println!("Read Data {:?}", &fileData);
-    println!("Size of file: {}", fileData.len());
+    println!("Size of file: {}", fileData.len());//this is returning the size just fine    
     Ok(fileData)
 }
 
