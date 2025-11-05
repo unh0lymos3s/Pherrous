@@ -34,7 +34,8 @@ fn handle_connection(mut stream: TcpStream, filePath: String){
     
     stream.write(b"Transmitting Filesize\n");
     stream.write(b"File Size = ");
-    stream.write(&size.to_be_bytes());
+    stream.write(&size.to_be_bytes()); //to view filesize, i. use netcat to save file as a binary,
+                                       //ii hexdump -C recieved.bin | head
     stream.write(b"\n Streaming whole file");
     let bytesWritten = stream.write(ReadData).expect("Failed to respond!");
     println!("Written bytes {:?}", bytesWritten);
