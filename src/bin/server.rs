@@ -35,8 +35,7 @@ fn send_file_meta_data(mut stream: &TcpStream, filePath: String){
     let ReadData:&[u8] = &filedata.as_slice(); 
     let size = getMetaData(ReadData) as u64; 
     
-    stream.write(b"Transmitting Filesize\n");
-    stream.write(b"File Size = ");
+    println!("Transmitting Filesize\n");
     stream.write(&size.to_be_bytes()); //to view filesize, i. use netcat to save file as a binary,
      //ii hexdump -C recieved.bin | head
 
@@ -46,7 +45,7 @@ fn transmit_file(mut stream: &TcpStream, filePath: String){
     let buffer = BufReader::new(stream);
     let file = openFileAsByte(filePath).expect("Error reading file");
     let fileContents: &[u8] = &file.as_slice();
-    stream.write(b"\n Streaming whole file");
+    println!("\nStreaming whole file");
     let bytesWritten = stream.write(fileContents).expect("Failed to respond!");
     println!("Written bytes {:?}", bytesWritten);
 }
@@ -101,6 +100,4 @@ fn main() {
 
 
 }
-
-
 
