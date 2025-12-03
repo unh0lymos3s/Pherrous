@@ -2,7 +2,7 @@ use std::net::{SocketAddr, TcpStream, TcpListener};
 use std::io::{BufReader, Write};
 use std::fs::{File, read};
 use std::path::{Path, PathBuf};
-fn tcp_server(filePath: String){
+fn tcp_server(filePath: String, filename: String){
     let mut count:i32=0;
     let addrs =[
         SocketAddr::from(([127,0,0,1], 8080)),
@@ -10,13 +10,11 @@ fn tcp_server(filePath: String){
     if let Ok(listener) = TcpListener::bind(&addrs[..])  {
         
         println!("Bound to the address 8080");
-        /*match listener.accept() {
-            Ok((_socket, addr)) => println!("new client {addr:?}"),
-            Err(e) => println!("Error Receieved {e:?}"),
-        }*/
+        
         for stream in listener.incoming(){
             let stream = stream.unwrap();
-            send_file_meta_data(&stream,filePath.clone());
+            send_file_size(&stream,filePath.clone());
+            send_file_name(&stream, filename.clone());
             transmit_file(&stream, filePath.clone());
 
         }
@@ -28,7 +26,7 @@ fn tcp_server(filePath: String){
 }
 
 
-fn send_file_meta_data(mut stream: &TcpStream, filePath: String){
+fn send_file_size(mut stream: &TcpStream, filePath: String){
     let buffer = BufReader::new(stream);
     
     let filedata =  openFileAsByte(filePath).expect("Couldn't read file");
@@ -40,6 +38,12 @@ fn send_file_meta_data(mut stream: &TcpStream, filePath: String){
      //ii hexdump -C recieved.bin | head
 
 }
+
+fn send_file_name(mut stream: &TcpStream, filename: String){
+    stream.write(&filename.as_bytes());
+
+}
+
 
 fn transmit_file(mut stream: &TcpStream, filePath: String){
     let buffer = BufReader::new(stream);
@@ -88,6 +92,7 @@ fn getFilename()->(String, String){
     }}  
 }
 
+
    
 fn main() {
         println!("Welcome to pherrous");
@@ -95,8 +100,8 @@ fn main() {
         let filepath:String;
         (filename,filepath) = getFilename();
         println!("Serving file {:?} at 127.0.0.1:8080", filename);
-        tcp_server(filepath);
-      //  println!("{:?}", filepath);
+        tcp_server(filepath, filename);
+      
 
 
 }
