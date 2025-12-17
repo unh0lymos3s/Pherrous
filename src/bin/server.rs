@@ -12,7 +12,7 @@ fn tcp_server(filePath: String, filename: String){
         println!("Bound to the address 8080");
         
         for stream in listener.incoming(){
-            let stream = stream.unwrap();
+            let stream = stream.expect("Buggy Request Recieved");
             send_file_size(&stream,filePath.clone());
             send_file_name(&stream, filename.clone());
             transmit_file(&stream, filePath.clone());

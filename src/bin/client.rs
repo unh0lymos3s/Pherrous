@@ -9,11 +9,14 @@ fn tcp_client(){
             Ok(mut getStream) => {
                 println!("Recieving file..........");    
                 let mut fileSizeBuf = [0u8; 8];
-                let mut fileNameBuf = [0u8;8];
+                let mut fileNameBuf = vec![0; 9];
                 getStream.read_exact(&mut fileSizeBuf);
                 getStream.read_exact(&mut fileNameBuf);
-                let filename = u64::from_le_bytes(fileNameBuf);
-                println!("Recieving File Name: {:?}",filename );
+                if let Ok(filename) = String::from_utf8(fileNameBuf){
+                    println!("Recieving File: {:?}",&filename);
+                }
+                
+               // println!("Recieving File Name: {:?}",filename );
                 acceptData(getStream);
                 //decode filesize
                
