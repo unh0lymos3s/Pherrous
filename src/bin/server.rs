@@ -13,9 +13,10 @@ fn tcp_server(filePath: String, filename: String){
         
         for stream in listener.incoming(){
             let stream = stream.expect("Buggy Request Recieved");
-            send_file_size(&stream,filePath.clone());
-            send_file_name(&stream, filename.clone());
-            transmit_file(&stream, filePath.clone());
+            send_filename_size(&stream, filePath.clone());//send size of the files name
+            send_file_name(&stream, filename.clone());//send the file name
+            send_file_size(&stream,filePath.clone()); //send the size of the file
+            transmit_file(&stream, filePath.clone());//send the actual file
 
         }
     }
@@ -23,12 +24,15 @@ fn tcp_server(filePath: String, filename: String){
         println!("Couldn't bind to address");
     }
 
+
 }
+
+
 
 
 fn send_file_size(mut stream: &TcpStream, filePath: String){
     let buffer = BufReader::new(stream);
-    
+        
     let filedata =  openFileAsByte(filePath).expect("Couldn't read file");
     let ReadData:&[u8] = &filedata.as_slice(); 
     let size = getMetaData(ReadData) as u64; 
@@ -44,6 +48,12 @@ fn send_file_name(mut stream: &TcpStream, filename: String){
 
 }
 
+fn send_filename_size(mut stream: &TcpStream, filename: String){
+    let filename_size_uSize: usize = filename.len();
+    let filename_size_u8: u8 = filename_size_uSize as u8;
+    let filename_size_array:[u8;1] = [filename_size_u8];
+    stream.write(&filename_size_array);
+}
 
 fn transmit_file(mut stream: &TcpStream, filePath: String){
     let buffer = BufReader::new(stream);
@@ -72,18 +82,20 @@ fn getMetaData(ReadData: &[u8])->usize{
 
 fn getFilename()->(String, String){
     loop{
-    println!("Please Enter the File's path that you need to host.");
+    println!("Please Enter the File's name that you need to host. (Make sure the file exists in the folder this code runs from)");
     let mut file_string = String::new();
     let input_path = std::io::stdin().read_line(&mut file_string).unwrap();//saving the value to file_string
     let trimmed_file_string = file_string.trim();
     let file_path = PathBuf::from(&trimmed_file_string);
     
+
     if file_path.exists(){
         //let fileOsString = file_path.as_os_str();
         if let Some(file) = file_path.file_name(){
+            
             if let Some(validName) = file.to_str(){
                 return (validName.to_owned(), trimmed_file_string.to_owned());
-            }
+                }
         }
         
     }
